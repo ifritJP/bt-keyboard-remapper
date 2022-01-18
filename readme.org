@@ -1,0 +1,8 @@
+# -*- coding:utf-8 -*-
+#+AUTHOR: ifritJP
+#+STARTUP: nofold
+#+OPTIONS: ^:{}
+
+* bt-keyboard-remapper
+
+This is the key remapper independent the OS.

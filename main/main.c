@@ -48,6 +48,7 @@
 #include "my_ota.h"
 #include "cmd_wifi.h"
 #include "my_console.h"
+#include "stateCtrl.h"
 
 extern int btstack_main(int argc, const char * argv[]);
 
@@ -97,6 +98,8 @@ int app_main(void)
         wrap_wifi_join( setting.ssid, setting.pass, 2000 );
         start_otad( setting.otaAuthB64 );
     }
+
+    state_run();
     
     // Enter run loop (forever)
     btstack_run_loop_execute();

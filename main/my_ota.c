@@ -49,8 +49,8 @@ static bool processOta( esp_ota_handle_t otaHandle, httpd_req_t *req )
         remain -= readSize;
         totalSize += readSize;
         if ( totalSize - prevNotifySize >= DISP_UNIT ) {
-            httpd_resp_sendstr_chunk(req, "*");
-            printf( "*" );
+            httpd_resp_sendstr_chunk(req, ".");
+            printf( "." );
             fflush( stdout );
             prevNotifySize = ( totalSize / DISP_UNIT ) *  DISP_UNIT;
         }

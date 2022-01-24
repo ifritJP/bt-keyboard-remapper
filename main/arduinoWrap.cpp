@@ -1,6 +1,8 @@
 #include "Arduino.h"
 #include "M5Atom.h"
 
+#include "arduinoWrap.h"
+
 static volatile int sleepMiliSec = 2000;
 
 static void led_task(void * pParam)
@@ -42,16 +44,30 @@ static void buttonTask( void * pParam )
   }
 }
 
-extern "C" void arduinoSetup(void) {
-  //// initArduino() 実行すると正常に動作しなかったのでコメントアウト
-  // initArduino();
+extern "C" {
+  void ui_led_set( uint32_t rgb ) {
+      M5.dis.drawpix(0, rgb );
+  }
 
-  M5.begin(false, false, true);
+  bool ui_button_isPressed( void ) {
+    return M5.Btn.isPressed();
+  }
 
-  void * pParam = NULL;
-  xTaskCreate( led_task, "led_task", 2 * 1024, NULL,
-	       configMAX_PRIORITIES - 3, &pParam );
+  void ui_update( void ) {
+    M5.update();
+  }
+  
+  void arduinoSetup(void) {
+    //// initArduino() 実行すると正常に動作しなかったのでコメントアウト
+    // initArduino();
 
-  xTaskCreate( buttonTask, "buttonTask", 1 * 1024, NULL,
-	       configMAX_PRIORITIES - 3, &pParam );
+    M5.begin(false, false, true);
+
+    // void * pParam = NULL;
+    // xTaskCreate( led_task, "led_task", 2 * 1024, NULL,
+    // 		 configMAX_PRIORITIES - 3, &pParam );
+
+    // xTaskCreate( buttonTask, "buttonTask", 1 * 1024, NULL,
+    // 		 configMAX_PRIORITIES - 3, &pParam );
+  }
 }

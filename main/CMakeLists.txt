@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 idf_component_register(
   SRCS main.c hid_keyboard_demo.c hog_keyboard_demo.c
   console_example_main.c
+  stateCtrl.c
   my_ota.c
   cmd_wifi.c
   my_console.c

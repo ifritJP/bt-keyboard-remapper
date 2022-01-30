@@ -1,0 +1,150 @@
+import go/github:com.ifritJP.lnshttpd.src.lns.httpd.lnsservlet;
+import go/github:com.ifritJP.LuneScript.src.lune.base.Util;
+
+
+module json require "go/github:com.ifritJP.lnshttpd.src.lns.httpd.json" of "" {
+   pub static fn readJsonObj( stream:lnsservlet.inStream ) : &Map<str,&stem>!;
+   pub static fn writeJsonObj( stream:lnsservlet.outStream, obj:&Map<str,&stem> );
+}
+
+module base64 require "base64" of "" {
+   pub static fn encode( bin:str ):str;
+}
+
+class SettingSwitchKey extend (Mapping) {
+   let On:bool! {pub};
+   let Src:int {pub};
+   let Dst:int {pub};
+}
+
+class ConvKeyInfo extend (Mapping) {
+   let On:bool! {pub};
+   let CondModifierMask:int {pub};
+   let CondModifierResult:int {pub};
+   let Code:int {pub};
+   let ModifierXor:int {pub};
+}
+
+class ConfigData extend (Mapping) {
+   let SwitchKeys:List <SettingSwitchKey> {pub};
+   let ConvKeyMap:Map<str,List<ConvKeyInfo>> {pub};
+}
+
+class ConfigWriter {
+   let stream:oStream;
+   fn toint32bin( val:int ) : str {
+      return "%c%c%c%c" ( (val |>> 0) & 0xff,  (val |>> 8) & 0xff,
+                          (val |>> 16) & 0xff, (val |>> 24) & 0xff );
+   }
+   fn toint8bin( val:int ) : str {
+      return "%c" ( (val |>> 0) & 0xff );
+   }
+   
+   pub fn writeInt32( val:int ) mut {
+      self.stream.write( self.toint32bin( val ) );
+   }
+   pub fn writeInt8( val:int ) mut {
+      self.stream.write( self.toint8bin( val ) );
+   }
+}
+
+fn countMap<T1,T2>( map:&Map<T1,T2> ) : int {
+   let mut count = 0;
+   foreach _ in map {
+      count = count + 1;
+   }
+   return count;
+}
+
+fn writeConfigData( stream:oStream, conf:&ConfigData ) {
+   let mut writer = new ConfigWriter( stream );
+
+   // ヘッダ出力
+   writer.writeInt32( 1 );
+   writer.writeInt32( #conf.$SwitchKeys );
+   writer.writeInt32( countMap( conf.$ConvKeyMap ) );
+   writer.writeInt32( 4 * 4 );
+
+   fn isValid( val:bool! ) : bool {
+      return val ~= false;
+   }
+
+   // SwitchKeys 出力
+   foreach info in conf.$SwitchKeys {
+      if isValid( info.$On ) {
+         writer.writeInt8( info.$Src );
+         writer.writeInt8( info.$Dst );
+      }
+   };
+   // ConvKeyMap 出力
+   foreach list, key in conf.$ConvKeyMap {
+      let code;
+      if key.find( "^0x"## ) {
+         code = tonumber( key.sub( 3## ), 16 );
+      } else {
+         code = tonumber( key, 10 );
+      }
+      when! code {
+         writer.writeInt8( code@@int );
+         let mut num = 0;
+         foreach map in list {
+            if isValid( map.$On ) {
+               num = num + 1;
+            }
+         }
+         writer.writeInt8( num );
+         foreach map in list {
+            if isValid( map.$On ) {
+               writer.writeInt8( map.$CondModifierMask );
+               writer.writeInt8( map.$CondModifierResult );
+               writer.writeInt8( map.$Code );
+               writer.writeInt8( map.$ModifierXor );
+            }
+         }
+      }
+   }
+}
+
+fn printUsage( command:str, errMessage:str ) {
+   if #errMessage > 0 {
+      io.stderr.write( "error: %s \n" (errMessage) );
+      print( "" );
+   }
+   print( "usage: %s configfile" (command) );
+}
+
+fn process( arg:&List<str> ) : bool {
+   if #arg <= 1 {
+      printUsage( arg[1], "" );
+      return true;
+   }
+   let! mut fileObj = io.open( arg[2]## ) {
+      printUsage( arg[1], "failed to open file -- %s" (arg[2]) );
+      return false;
+   };
+   let! jsonObj = json.readJsonObj( new lnsservlet.luaInStream( fileObj ) ) {
+      printUsage( arg[1], "failed to read JSON" );
+      return false;
+   };
+   let conf, mess = ConfigData._fromStem( jsonObj );
+   when! conf {
+      let mut memStream = new Util.memStream();
+
+      writeConfigData( memStream, conf );
+
+      print( #memStream.$txt );
+      print( base64.encode( memStream.$txt ) );
+   } else {
+      printUsage( arg[1], "failed to convert to ConfigData. -- %s" (mess) );
+      return false;
+   }
+   
+   return true;
+}
+
+pub fn __main( arg:&List<str> ) : int {
+   if process( arg ) {
+      return 0;
+   }
+   return 1;
+}

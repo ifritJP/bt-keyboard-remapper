@@ -1,9 +1,9 @@
 
-// .\hog_keyboard_demo.h generated from hog_keyboard_demo.gatt for BTstack
+// .\hog_keyboard_ctrl.h generated from hog_keyboard_ctrl.gatt for BTstack
 // it needs to be regenerated when the .gatt file is updated. 
 
-// To generate .\hog_keyboard_demo.h:
-// ../../../components/btstack/tool/compile_gatt.py hog_keyboard_demo.gatt .\hog_keyboard_demo.h
+// To generate .\hog_keyboard_ctrl.h:
+// ../../../components/btstack/tool/compile_gatt.py hog_keyboard_ctrl.gatt .\hog_keyboard_ctrl.h
 
 // att db format version 1
 

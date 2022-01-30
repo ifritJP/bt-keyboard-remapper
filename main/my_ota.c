@@ -122,7 +122,7 @@ static esp_err_t http_handle_ota( httpd_req_t *req )
     httpd_resp_sendstr_chunk(req, NULL);
 
     // reset ハンドラが結構スタックを取るっぽい
-    xTaskCreate(restart_task, "restart_task", 1024 * 10, NULL, 10, NULL);
+    xTaskCreate(restart_task, "restart_task", 1024 * 15, NULL, 10, NULL);
 
     return ESP_OK;
 }
@@ -151,7 +151,7 @@ void start_otad( const char * pAuthB64 ) {
     httpd_handle_t server;
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.max_open_sockets = 3;
-    config.stack_size = 9 * 1024;
+    config.stack_size = 10 * 1024;
 
     strcpy( s_otaAuthB64, pAuthB64 );
     if ( strcmp( s_otaAuthB64, "" ) != 0 ) {

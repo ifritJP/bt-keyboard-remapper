@@ -1,5 +1,7 @@
 /* Console example
 
+   modified 2022 ifritJP   
+   
    This example code is in the Public Domain (or CC0 licensed, at your option.)
 
    Unless required by applicable law or agreed to in writing, this
@@ -74,7 +76,7 @@ void console_app_main(void)
     repl_config.prompt = PROMPT_STR ">";
     repl_config.max_cmdline_length = CONFIG_CONSOLE_MAX_COMMAND_LINE_LENGTH;
 
-    initialize_nvs();
+    //initialize_nvs();
 
 #if CONFIG_CONSOLE_STORE_HISTORY
     initialize_filesystem();

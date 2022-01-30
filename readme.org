@@ -6,3 +6,5 @@
 * bt-keyboard-remapper
 
 This is the key remapper independent the OS.
+
+This software runs on M5Stack ATOM.

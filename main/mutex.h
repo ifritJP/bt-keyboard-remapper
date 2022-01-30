@@ -1,6 +1,13 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 
+
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef QueueHandle_t SMutex_t;
 
 extern SMutex_t SMutex_create( void );
@@ -18,3 +25,8 @@ extern SQueue_t SQueue_create( int len, int size );
 extern void SQueue_get( SQueue_t chan, void * const pvBuffer );
 extern void SQueue_put( SQueue_t chan, const void * pData );
 extern void SQueue_put_isr( SQueue_t chan, const void * pData );
+
+#ifdef __cplusplus
+{
+#endif
+  

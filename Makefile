@@ -22,6 +22,7 @@ help:
 	@echo make build
 	@echo make burn
 	@echo make monitor
+	@echo make ota
 
 all:
 	idf.py flash $(IDF_OPT) monitor 
@@ -47,7 +48,6 @@ endif
 
 ota: build
 	$(MAKE) only-ota
-	$(MAKE) monitor
 
 make_parttable:
 	python ${IDF_PATH}/components/partition_table/gen_esp32part.py \

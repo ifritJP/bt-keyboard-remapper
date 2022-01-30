@@ -2,14 +2,19 @@ cmake_minimum_required(VERSION 3.5)
 
 idf_component_register(
   SRCS
-  main.c 
+  main.c
+  hid_reportDesc.c
+  HID.c
+  convMap.c
+  my_keyboard.c
+  Config.c
   stateCtrl.c
   my_ota.c
   my_console.c
   my_bluetooth.c
+  hid_keyboard_ctrl.c
+  hog_keyboard_ctrl.c
   depends/btstack/gap_inquiry.c
-  depends/btstack/hid_keyboard_demo.c
-  depends/btstack/hog_keyboard_demo.c
   depends/btstack/console_example_main.c
   depends/btstack/cmd_wifi.c
   #  console.c

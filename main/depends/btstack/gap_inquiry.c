@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2014 BlueKitchen GmbH
  *
+ *  modified 2022 ifritJP   
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -32,9 +34,6 @@
  *
  * Please inquire about commercial licensing options at 
  * contact@bluekitchen-gmbh.com
- *
- *
- * modified 2022 ifritJP
  */
 
 #define BTSTACK_FILE__ "gap_inquiry.c"

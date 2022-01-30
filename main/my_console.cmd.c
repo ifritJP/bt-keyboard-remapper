@@ -23,6 +23,22 @@ static struct {
 static const console_command_arg_t s_argInfo_state[] = {
 };
 
+//============== config
+static struct {
+    struct arg_str * pMode;
+    struct arg_str * pDevMode;
+    struct arg_int * pDemo;
+    
+    
+    CONSOLE_DECL_ARG_TERM;
+    
+} s_console_arg_config;
+static const console_command_arg_t s_argInfo_config[] = {
+    CONSOLE_ARG_STR_OP_SET( "mode", "m", NULL, "set the mode. 'normal' or 'setup'" ),
+    CONSOLE_ARG_STR_OP_SET( "hidDevMode", "h", NULL, "set the hid dev mode. 'bt' or 'le'" ),
+    CONSOLE_ARG_INT_OP_SET( "demo <0 or 1>", NULL, "demo", "set the demo mode 0 or 1" ),
+};
+
 //============== wifi
 static struct {
     struct arg_str * pCryptKey;
@@ -55,11 +71,11 @@ static struct {
     struct arg_str * pSendKey;
     struct arg_lit * pInitDevice;
     struct arg_lit * pInitHost;
-    struct arg_lit * pBle;
     struct arg_lit * pListConns;
     struct arg_lit * pPairedDevices;
     struct arg_str * pScan;
     struct arg_str * pUnpair;
+    struct arg_str * pWhiteList;
     
     
     CONSOLE_DECL_ARG_TERM;
@@ -82,8 +98,6 @@ static const console_command_arg_t s_argInfo_bt_dev[] = {
     CONSOLE_ARG_FLAG_OP_SET(
         "initHost", NULL, "inithost", "init as host" ),
     CONSOLE_ARG_FLAG_OP_SET(
-        "ble", NULL, "ble", "set ble mode" ),
-    CONSOLE_ARG_FLAG_OP_SET(
         "list", "l", NULL, "list connections" ),
     CONSOLE_ARG_FLAG_OP_SET(
         "paired devices", "p", NULL, "paired devices" ),
@@ -91,8 +105,48 @@ static const console_command_arg_t s_argInfo_bt_dev[] = {
         "on or off or now", NULL, "scan", "scan devices. on or off" ),
     CONSOLE_ARG_STR_OP_SET(
         "addr or 'all'", NULL, "unpair", "remove pair." ),
+    CONSOLE_ARG_STR_OP_SET(
+        "'set' or 'clear'", NULL, "wlist", "white list." ),
 
 };
+
+//============== remap
+static struct {
+    struct arg_lit * pUpload;
+    struct arg_lit * pDump;
+    struct arg_str * pKey;
+    struct arg_str * pConv;
+    struct arg_lit * pSave;
+    struct arg_lit * pLoad;
+    struct arg_lit * pClear;
+    struct arg_lit * pDump64;
+    struct arg_lit * pLoad64;
+    
+    
+    CONSOLE_DECL_ARG_TERM;
+} s_console_arg_remap;
+static const console_command_arg_t s_argInfo_remap[] = {
+    CONSOLE_ARG_FLAG_OP_SET(
+        "upload", "u", NULL, "upload the remap data" ),
+    CONSOLE_ARG_FLAG_OP_SET(
+        "dump", "p", NULL, "dump the remap" ),
+    CONSOLE_ARG_STR_OP_SET(
+        "old,new", "k", NULL, "set remap key. old,new. e.g. a->b: 4,5  a->z: 4,29" ),
+    CONSOLE_ARG_STR_OP_SET(
+        "code,mask,result,code,xor", "c", NULL,
+        "set convert key. e.g. S-SPC->1: 44,2,2,30,2" ),
+    CONSOLE_ARG_FLAG_OP_SET(
+        "save", "s", NULL, "save the remap" ),
+    CONSOLE_ARG_FLAG_OP_SET(
+        "load", "l", NULL, "load the remap" ),
+    CONSOLE_ARG_FLAG_OP_SET(
+        "clear", NULL, "clear", "clear the remap" ),
+    CONSOLE_ARG_FLAG_OP_SET(
+        "base64dump", NULL, "b64dump", "dump the remap as base64" ),
+    CONSOLE_ARG_FLAG_OP_SET(
+        "base64read", NULL, "b64read", "read the remap as base64" ),
+};
+
 
 //===================
 static const console_command_t s_commandInfo [] = {
@@ -114,11 +168,19 @@ static const console_command_t s_commandInfo [] = {
     },
     {
         .name = "state",
-        .help = "display my version",
+        .help = "state",
         .func = console_state_command,
         .argNum = CONSOLE_ARG_LEN( s_argInfo_state ),
         .argInfoList = s_argInfo_state,
         .pArgStrust = &s_console_arg_state,
+    },
+    {
+        .name = "config",
+        .help = "config",
+        .func = console_config_command,
+        .argNum = CONSOLE_ARG_LEN( s_argInfo_config ),
+        .argInfoList = s_argInfo_config,
+        .pArgStrust = &s_console_arg_config,
     },
     {
         .name = "wifi",
@@ -135,5 +197,13 @@ static const console_command_t s_commandInfo [] = {
         .argNum = CONSOLE_ARG_LEN( s_argInfo_bt_dev ),
         .argInfoList = s_argInfo_bt_dev,
         .pArgStrust = &s_console_arg_bt_dev,
+    },
+    {
+        .name = "remap",
+        .help = "remap the keyboard",
+        .func = console_remap_command,
+        .argNum = CONSOLE_ARG_LEN( s_argInfo_remap ),
+        .argInfoList = s_argInfo_remap,
+        .pArgStrust = &s_console_arg_remap,
     }
 };

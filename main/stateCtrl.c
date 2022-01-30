@@ -5,15 +5,21 @@
 
 #include <esp_log.h>
 #include "my_console.h"
+#include "esp_timer.h"
 
 #define INTERVAL_MILISEC 50
 #define TAG "STATE"
 
 typedef enum {
+    /** setup mode */
+    ui_state_kind_setup,
+    
     /** 起動中 */
     ui_state_kind_booting,
     /** BT ホストへ接続中 */
     ui_state_kind_connect_to_host,
+    /** 待ち */
+    ui_state_kind_dummy_wait,
     /** BT デバイスへ接続中 */
     ui_state_kind_connect_from_device,
     /** キー変換処理。通常状態。 */
@@ -39,6 +45,7 @@ typedef struct {
 
     volatile bool connectedToHost;
     volatile bool connectedFromDevice;
+    int64_t prevTime;
     
 } state_info_t;
 
@@ -47,6 +54,7 @@ typedef enum {
     ui_led_mode_off,
     ui_led_mode_on,
     ui_led_mode_blink,
+    ui_led_mode_blink_long,
     ui_led_mode_lazy,
     ui_led_mode_emergency,
 
@@ -66,16 +74,26 @@ typedef struct {
     int countForLongPress;
     bool longPressed;
     bool edgeLongPressed;
+    int countForLongLongPress;
+    bool longLongPressed;
+    bool edgeLongLongPressed;
     bool clicked;
 } state_button_info_t;
 
 #define LED_SUBSTEP_MAX 12
 
 static const uint8_t s_ledBlinkPattrn[][LED_SUBSTEP_MAX] = {
+    // ui_led_mode_off,
     {},
+    // ui_led_mode_on,
     { 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1 },
+    // ui_led_mode_blink,
     { 0x1, 0x1, 0x0, 0x0, 0x1, 0x1, 0x0, 0x0, 0x1, 0x1, 0x0, 0x0 },
+    // ui_led_mode_blink_long,
+    { 0x1, 0x0, 0x1, 0x0, 0x1, 0x0, 0x1, 0x1, 0x1, 0x1, 0x1, 0x0 },
+    // ui_led_mode_lazy,
     { 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x0, 0x0 },
+    // ui_led_mode_emergency,
     { 0x1, 0x0, 0x1, 0x0, 0x1, 0x0, 0x1, 0x0, 0x1, 0x0, 0x1, 0x0 },
 };
 
@@ -114,6 +132,7 @@ static void state_button_process( state_button_info_t * pInfo ) {
     bool isPressed = ui_button_isPressed();
     pInfo->clicked = false;
     pInfo->edgeLongPressed = false;
+    pInfo->edgeLongLongPressed = false;
     if ( pInfo->prevPressed == isPressed ) {
         if ( pInfo->keptCount >= 1 ) {
             if ( pInfo->prevPressedFix != isPressed ) {
@@ -125,15 +144,25 @@ static void state_button_process( state_button_info_t * pInfo ) {
                         printf( "clicked\n" );
                     } else {
                         pInfo->longPressed = false;
+                        pInfo->longLongPressed = false;
                     }
                 }
             }
             if ( pInfo->keptCount >= pInfo->countForLongPress ) {
                 if ( isPressed ) {
-                    if ( !pInfo->longPressed ) {
-                        pInfo->longPressed = true;
-                        pInfo->edgeLongPressed = true;
-                        printf( "long pressed\n" );
+                    if ( pInfo->keptCount >= pInfo->countForLongLongPress ) {
+                        if ( !pInfo->longLongPressed ) {
+                            pInfo->longLongPressed = true;
+                            pInfo->edgeLongLongPressed = true;
+                            printf( "long long pressed\n" );
+                        }
+                    } else {
+                        pInfo->keptCount++;
+                        if ( !pInfo->longPressed ) {
+                            pInfo->longPressed = true;
+                            pInfo->edgeLongPressed = true;
+                            printf( "long pressed\n" );
+                        }
                     }
                 }
             } else {
@@ -149,8 +178,9 @@ static void state_button_process( state_button_info_t * pInfo ) {
 }
 
 
-static void state_switchState( state_info_t * pInfo, ui_state_kind_t newKind,
-                               state_led_info_t * pLedInfo )
+static void state_switchState(
+    state_info_t * pInfo, ui_state_kind_t newKind,
+    state_led_info_t * pLedInfo, my_config_t * pConfig )
 {
     ui_state_kind_t prevKind = pInfo->kind;
 
@@ -160,6 +190,8 @@ static void state_switchState( state_info_t * pInfo, ui_state_kind_t newKind,
     case ui_state_kind_booting:
         break;
     case ui_state_kind_connect_to_host:
+        break;
+    case ui_state_kind_dummy_wait:
         break;
     case ui_state_kind_connect_from_device:
         break;
@@ -180,17 +212,22 @@ static void state_switchState( state_info_t * pInfo, ui_state_kind_t newKind,
     case ui_state_kind_connect_to_host:
         pLedInfo->ledMode = ui_led_mode_emergency;
         pLedInfo->ledColor = 0x00ff00;
-        /* bt_kb_device_setup(); */
-        /* ESP_LOGI( TAG, "%s: called bt_kb_device_setup", __func__ ); */
-        /* // BT 初期化が終わるまで、とりあえず 1 秒待つ */
-        /* vTaskDelay( 1000 / portTICK_PERIOD_MS ); */
-        /* bt_kb_device_connect(); */
+        bt_kb_device_setup();
+        ESP_LOGI( TAG, "%s: called bt_kb_device_setup", __func__ );
+        // BT 初期化が終わるまで、とりあえず 1 秒待つ
+        vTaskDelay( 1000 * 2 / portTICK_PERIOD_MS );
+        my_bt_info_t info;
+        if ( console_get_bt_info( pConfig->toHostAddr, &info ) ) {
+            bt_kb_device_connect_to_host( info.pairAddr, info.pairAddrType );
+        }
+        break;
+    case ui_state_kind_dummy_wait:
+        pInfo->prevTime = esp_timer_get_time() / 1000;
         break;
     case ui_state_kind_connect_from_device:
-        pLedInfo->ledMode = ui_led_mode_emergency;
-        pLedInfo->ledColor = 0xff8000;
+        pLedInfo->ledMode = ui_led_mode_blink_long;
         bt_kb_host_setup();
-        //bt_kb_host_connect();
+        // bt_kb_host_connect_to_device();
         break;
     case ui_state_kind_remap_key:
         pLedInfo->ledMode = ui_led_mode_on;
@@ -206,25 +243,41 @@ static void state_switchState( state_info_t * pInfo, ui_state_kind_t newKind,
 }
 
 static state_info_t s_stateIno = {
+    .kind = ui_state_kind_booting,
 };
 
-static void state_process( state_info_t * pStateInfo,
-                           state_led_info_t * pLedInfo )
+static void state_process(
+    state_info_t * pStateInfo,
+    state_led_info_t * pLedInfo, my_config_t * pConfig )
 {
     switch ( pStateInfo->kind ) {
+    case ui_state_kind_setup:
+        break;
     case ui_state_kind_booting:
         state_switchState(
-            pStateInfo, ui_state_kind_connect_to_host, pLedInfo );
+            pStateInfo, ui_state_kind_connect_to_host, pLedInfo, pConfig );
         break;
     case ui_state_kind_connect_to_host:
         if ( pStateInfo->connectedToHost ) {
+            // 接続した後、直ぐに次の処理を続けると正常に動作しないので、
+            // とりあえずダミーの待ち処理を入れる。
             state_switchState(
-                pStateInfo, ui_state_kind_connect_from_device, pLedInfo );
+                pStateInfo, ui_state_kind_dummy_wait, pLedInfo, pConfig );
+        }
+        break;
+    case ui_state_kind_dummy_wait:
+        {
+            int64_t now = esp_timer_get_time() / 1000;
+            if ( now - pStateInfo->prevTime > 1000 * 3 ) {
+                state_switchState(
+                    pStateInfo, ui_state_kind_connect_from_device, pLedInfo, pConfig );
+            }
         }
         break;
     case ui_state_kind_connect_from_device:
         if ( pStateInfo->connectedFromDevice ) {
-            state_switchState( pStateInfo, ui_state_kind_remap_key, pLedInfo );
+            state_switchState(
+                pStateInfo, ui_state_kind_remap_key, pLedInfo, pConfig );
         }
         break;
     case ui_state_kind_remap_key:
@@ -248,12 +301,30 @@ static void state_task(void * pParam)
     };
     state_button_info_t buttonInfo = {
         .countForLongPress = 6,
+        .countForLongLongPress = 85,
     };
 
-    int step = 0;
+    my_config_t * pConfig = console_get_config();
+
+    if ( pConfig->mode == my_config_mode_setup ) {
+        s_stateIno.kind = ui_state_kind_setup;
+    } else {
+        s_stateIno.kind = ui_state_kind_booting;
+        ledInfo.ledMode = ui_led_mode_blink_long;
+    }
+
+    ui_update();
+    if ( ui_button_isPressed() ) {
+        vTaskDelay( 1000 / portTICK_PERIOD_MS );
+        ui_update();
+        if ( ui_button_isPressed() ) {
+            s_stateIno.kind = ui_state_kind_setup;
+            ledInfo.ledMode = ui_led_mode_emergency;
+        }
+    }
 
     
-    
+    int step = 0;
     
     while ( true ) {
         vTaskDelay( INTERVAL_MILISEC / portTICK_PERIOD_MS );
@@ -263,7 +334,7 @@ static void state_task(void * pParam)
         state_button_process( &buttonInfo );
 
 
-        state_process( &s_stateIno, &ledInfo );
+        state_process( &s_stateIno, &ledInfo, pConfig );
         
         
 

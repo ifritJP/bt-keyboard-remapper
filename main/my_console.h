@@ -86,6 +86,38 @@ extern void console_register_command( const console_command_t * pList, int len )
 	       NAME, OP, LONGOP, 0,1, DESCRIPTION )
 
 
+/**
+ * 設定必須な文字列引数
+ *
+ * @param NAME 引数名
+ * @param DESCRIPTION 説明
+ */
+#define CONSOLE_ARG_INT( NAME, DESCRIPTION )		\
+  CONSOLE_ARG( console_command_arg_type_int,		\
+	       NAME, NULL, NULL, 1,1, DESCRIPTION )
+/**
+ * 省略可能な文字列引数
+ *
+ * @param NAME 引数名
+ * @param DESCRIPTION 説明
+ */
+#define CONSOLE_ARG_INT_OP( NAME, DESCRIPTION ) \
+  CONSOLE_ARG( console_command_arg_type_int,		\
+	       NAME, NULL, NULL, 0,1, DESCRIPTION )
+/**
+ * オプション指定の文字列引数
+ *
+ * @param NAME 引数名
+ * @param OP オプション名。 不要な場合 NULL。
+ * @param LONGOP 長いオプション名。 不要な場合 NULL。
+ *         OP か LONGOP どちらかは NULL 以外の指定が必要。
+ * @param DESCRIPTION 説明
+ */
+#define CONSOLE_ARG_INT_OP_SET( NAME, OP, LONGOP, DESCRIPTION )	\
+  CONSOLE_ARG( console_command_arg_type_int,		\
+	       NAME, OP, LONGOP, 0,1, DESCRIPTION )
+
+
 
 /**
  * 設定必須な文字列引数

@@ -57,6 +57,7 @@ hid_device_mode_t s_hid_device_mode = hid_device_mode_bt;
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <esp_log.h>
 
 #include "btstack.h"
 
@@ -66,6 +67,7 @@ hid_device_mode_t s_hid_device_mode = hid_device_mode_bt;
 
 #include "hog_key.h"
 #include "console.h"
+#include "stateCtrl.h"
 
 // to enable demo text on POSIX systems
 // #undef HAVE_BTSTACK_STDIN
@@ -493,7 +495,7 @@ void hid_embedded_start_typing( const char * pTxt ){
 
 //#endif
 
-static void processHidMeta(
+static void processHidMetaDevice(
     hid_channel_info_t * pChannelInfo, uint16_t channel, uint8_t * packet )
 {
     uint16_t cid = hid_subevent_connection_opened_get_hid_cid(packet);
@@ -533,6 +535,9 @@ static void processHidMeta(
                 pInfo->channel = 0;
                 return;
             }
+
+            state_connectedToHost( true );
+            
             pInfo->state = HID_STATE_CONNECTED;
             hid_subevent_connection_opened_get_bd_addr( packet, pInfo->addr );
             
@@ -557,6 +562,9 @@ static void processHidMeta(
         pInfo->state = HID_STATE_NOT_CONNECTED;
         pInfo->cid = 0;
         pChannelInfo->state = CHANNEL_STATE_RESERVE;
+
+        state_connectedToHost( false );
+        
         break;
     case HID_SUBEVENT_CAN_SEND_NOW:
         printf("CAN_SEND_NOW\n");
@@ -678,7 +686,7 @@ static void packet_handler_device(
                     break; 
 
             case HCI_EVENT_HID_META:
-                processHidMeta( pFindInfo, channel, packet );
+                processHidMetaDevice( pFindInfo, channel, packet );
                     break;
                 default:
                     break;
@@ -811,6 +819,8 @@ static void processHidMetaHost(
         hid_host_descriptor_available = false;
         s_hid_info_in.cid = hid_subevent_connection_opened_get_hid_cid(packet);
         pChannelInfo->state = CHANNEL_STATE_CONNECTED;
+
+        state_connectedFromDevice( true );
         
         printf("HID Host connected.\n");
         break;
@@ -892,6 +902,8 @@ static void processHidMetaHost(
         hid_host_descriptor_available = false;
         pChannelInfo->state = CHANNEL_STATE_RESERVE;
         memset( s_hid_info_in.addr, 0, sizeof( bd_addr_t ) );
+
+        state_connectedFromDevice( false );
         
         printf("HID Host disconnected.\n");
         break;
@@ -1002,7 +1014,7 @@ static void packet_handler(
 {
     const hid_channel_info_t * pFindInfo =
         updateChannelInfo( channel, hid_channel_type_none );
-    
+
     switch ( pFindInfo->type ) {
     case hid_channel_type_host:
         packet_handler_host( packet_type, channel, packet, packet_size );
@@ -1035,12 +1047,17 @@ void key_hid_host_setup(void)
     hid_host_init(hid_descriptor_storage, sizeof(hid_descriptor_storage));
     hid_host_register_packet_handler(packet_handler_host);
 
-    /* // Allow sniff mode requests by HID device and support role switch */
-    /* gap_set_default_link_policy_settings(LM_LINK_POLICY_ENABLE_SNIFF_MODE | LM_LINK_POLICY_ENABLE_ROLE_SWITCH); */
+    // Allow sniff mode requests by HID device and support role switch
+    gap_set_default_link_policy_settings(LM_LINK_POLICY_ENABLE_SNIFF_MODE | LM_LINK_POLICY_ENABLE_ROLE_SWITCH);
 
     // try to become master on incoming connections
     hci_set_master_slave_policy(HCI_ROLE_MASTER);
 
+    // register for HCI events
+    /* hci_event_callback_registration.callback = &packet_handler; */
+    /* hci_add_event_handler(&hci_event_callback_registration); */
+
+    
     // Disable stdout buffering
     setbuf(stdout, NULL);
 }

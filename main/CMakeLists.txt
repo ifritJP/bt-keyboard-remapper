@@ -1,42 +1,48 @@
 cmake_minimum_required(VERSION 3.5)
 
 idf_component_register(
-  SRCS main.c hid_keyboard_demo.c hog_keyboard_demo.c
-  console_example_main.c
+  SRCS
+  main.c 
   stateCtrl.c
   my_ota.c
-  cmd_wifi.c
   my_console.c
   my_bluetooth.c
+  depends/btstack/gap_inquiry.c
+  depends/btstack/hid_keyboard_demo.c
+  depends/btstack/hog_keyboard_demo.c
+  depends/btstack/console_example_main.c
+  depends/btstack/cmd_wifi.c
   #  console.c
   mutex.c
   arduinoWrap.cpp
-  M5Atom/src/M5Atom.cpp
-  M5Atom/src/utility/Button.cpp
-  M5Atom/src/utility/LED_DisPlay.cpp
-  M5Atom/src/utility/M5Timer.cpp
-  M5Atom/src/utility/MPU6886.cpp
-  M5Atom/src/utility/MahonyAHRS.cpp
-  M5Atom/src/utility/Task.cpp
-  FastLED/src/bitswap.cpp
-  FastLED/src/colorpalettes.cpp
-  FastLED/src/colorutils.cpp
-  FastLED/src/FastLED.cpp
-  FastLED/src/hsv2rgb.cpp
-  FastLED/src/lib8tion.cpp
-  FastLED/src/noise.cpp
-  FastLED/src/platforms/esp/32/clockless_rmt_esp32.cpp
-  FastLED/src/platforms.cpp
-  FastLED/src/power_mgt.cpp
-  FastLED/src/wiring.cpp
+  depends/M5Atom/src/M5Atom.cpp
+  depends/M5Atom/src/utility/Button.cpp
+  depends/M5Atom/src/utility/LED_DisPlay.cpp
+  depends/M5Atom/src/utility/M5Timer.cpp
+  depends/M5Atom/src/utility/MPU6886.cpp
+  depends/M5Atom/src/utility/MahonyAHRS.cpp
+  depends/M5Atom/src/utility/Task.cpp
+  depends/FastLED/src/bitswap.cpp
+  depends/FastLED/src/colorpalettes.cpp
+  depends/FastLED/src/colorutils.cpp
+  depends/FastLED/src/FastLED.cpp
+  depends/FastLED/src/hsv2rgb.cpp
+  depends/FastLED/src/lib8tion.cpp
+  depends/FastLED/src/noise.cpp
+  depends/FastLED/src/platforms/esp/32/clockless_rmt_esp32.cpp
+  depends/FastLED/src/platforms.cpp
+  depends/FastLED/src/power_mgt.cpp
+  depends/FastLED/src/wiring.cpp
 
 
   
   INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}"
   .
-  M5Atom/src
-  M5Atom/src/utility
-  FastLED/src
+  depends
+  depends/btstack
+  depends/M5Atom/src
+  depends/M5Atom/src/utility
+  depends/FastLED/src
   )
 
 target_compile_options(${COMPONENT_TARGET} PUBLIC

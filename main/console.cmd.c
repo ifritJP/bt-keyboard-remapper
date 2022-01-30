@@ -16,6 +16,13 @@ static struct {
 static const console_command_arg_t s_argInfo_myver[] = {
 };
 
+//============== state
+static struct {
+    CONSOLE_DECL_ARG_TERM;
+} s_console_arg_state;
+static const console_command_arg_t s_argInfo_state[] = {
+};
+
 //============== wifi
 static struct {
     struct arg_str * pCryptKey;
@@ -40,25 +47,30 @@ static const console_command_arg_t s_argInfo_wifi[] = {
 
 //============== bt
 static struct {
-    struct arg_lit * pScanOn;
+    struct arg_int * pConnectToDevice;
     struct arg_lit * pChannel;
-    struct arg_lit * pConnectDevice;
+    struct arg_int * pConnectDevice;
     struct arg_lit * pDiscoverable;
     struct arg_lit * pUndiscoverable;
     struct arg_str * pSendKey;
     struct arg_lit * pInitDevice;
     struct arg_lit * pInitHost;
     struct arg_lit * pBle;
+    struct arg_lit * pListConns;
+    struct arg_lit * pPairedDevices;
+    struct arg_str * pScan;
+    struct arg_str * pUnpair;
+    
     
     CONSOLE_DECL_ARG_TERM;
 } s_console_arg_bt_dev;
 static const console_command_arg_t s_argInfo_bt_dev[] = {
-    CONSOLE_ARG_FLAG_OP_SET(
-        "scan", "s", NULL, "turn on scaning device" ),
+    CONSOLE_ARG_INT_OP_SET(
+        "dev-id", "s", NULL, "connect to device" ),
     CONSOLE_ARG_FLAG_OP_SET(
         "channel", "c", NULL, "dump channel" ),
-    CONSOLE_ARG_FLAG_OP_SET(
-        "device", "d", NULL, "connect as device" ),
+    CONSOLE_ARG_INT_OP_SET(
+        "host-id", "d", NULL, "connect as device" ),
     CONSOLE_ARG_FLAG_OP_SET(
         "discoverable", "D", NULL, "set discoverable as device" ),
     CONSOLE_ARG_FLAG_OP_SET(
@@ -71,6 +83,15 @@ static const console_command_arg_t s_argInfo_bt_dev[] = {
         "initHost", NULL, "inithost", "init as host" ),
     CONSOLE_ARG_FLAG_OP_SET(
         "ble", NULL, "ble", "set ble mode" ),
+    CONSOLE_ARG_FLAG_OP_SET(
+        "list", "l", NULL, "list connections" ),
+    CONSOLE_ARG_FLAG_OP_SET(
+        "paired devices", "p", NULL, "paired devices" ),
+    CONSOLE_ARG_STR_OP_SET(
+        "on or off or now", NULL, "scan", "scan devices. on or off" ),
+    CONSOLE_ARG_STR_OP_SET(
+        "addr or 'all'", NULL, "unpair", "remove pair." ),
+
 };
 
 //===================
@@ -90,6 +111,14 @@ static const console_command_t s_commandInfo [] = {
         .argNum = CONSOLE_ARG_LEN( s_argInfo_myver ),
         .argInfoList = s_argInfo_myver,
         .pArgStrust = &s_console_arg_myver,
+    },
+    {
+        .name = "state",
+        .help = "display my version",
+        .func = console_state_command,
+        .argNum = CONSOLE_ARG_LEN( s_argInfo_state ),
+        .argInfoList = s_argInfo_state,
+        .pArgStrust = &s_console_arg_state,
     },
     {
         .name = "wifi",

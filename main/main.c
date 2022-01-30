@@ -49,6 +49,8 @@
 #include "cmd_wifi.h"
 #include "my_console.h"
 #include "stateCtrl.h"
+#include "my_bluetooth.h"
+#include "btstack/my_gap_inquiry.h"
 
 extern int btstack_main(int argc, const char * argv[]);
 
@@ -90,6 +92,10 @@ int app_main(void)
     // Setup example
     btstack_main(0, NULL);
 
+    bt_kb_init();
+
+    my_gap_setup();
+    
     extern void console_app_main(void);
     console_app_main();
 

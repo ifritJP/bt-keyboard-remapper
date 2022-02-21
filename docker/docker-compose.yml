@@ -1,0 +1,14 @@
+# -*- coding: utf-8; -*-
+
+version: '3'
+services:
+
+  build:
+    build: .
+    image: bt-kbd-remapper
+    container_name: bt-kbd-remapper
+    restart: always
+# docker-compose up -d でデーモン起動できるように
+    tty: true
+    volumes:
+      - "../:/proj/bt-keyboard-remapper"

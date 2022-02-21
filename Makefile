@@ -29,6 +29,12 @@ help:
 setup:
 	cp -av patch/* .
 
+new-build:
+	idf.py reconfigure
+	$(MAKE) clean
+	$(MAKE) build
+
+
 all:
 	idf.py flash $(IDF_OPT) monitor 
 

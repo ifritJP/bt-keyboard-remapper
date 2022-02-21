@@ -14,6 +14,8 @@ IDF_OPT=-b $(RATE) -p $(COM)
 
 PROJECT_NAME=$(shell grep -e '^project' CMakeLists.txt | sed 's/.*(\(.*\))/\1/g')
 
+START_ON_DOCKER=/proj/bt-keyboard-remapper/docker/start.sh
+
 
 .PHONY: build
 
@@ -25,6 +27,13 @@ help:
 	@echo make burn
 	@echo make monitor
 	@echo make ota
+
+
+
+req-build-on-docker:
+	(cd docker;			\
+		docker-compose up -d;	\
+		docker exec -it bt-kbd-remapper $(START_ON_DOCKER))
 
 setup:
 	cp -av patch/* .

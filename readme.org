@@ -8,3 +8,38 @@
 This is the key remapper independent the OS.
 
 This software runs on M5Stack ATOM.
+
+
+** setup
+
+#+BEGIN_SRC txt
+$ git clone --depth 1 --recursive --shallow-submodules https://github.com/ifritJP/bt-keyboard-remapper.git
+$ cd bt-keyboard-remapper
+$ make setup
+#+END_SRC
+
+*** for docker
+
+- build
+    
+: $ make req-build-on-docker
+
+**** linux
+    
+- burn the firmware
+    
+: $ docker exec -it bt-kbd-remapper make -C /proj/bt-kbd-remapper all COM=/proj/dev/ttyUSB0
+
+- access the console
+
+: $ docker exec -it bt-kbd-remapper make -C /proj/bt-kbd-remapper monitor COM=/proj/dev/ttyUSB0
+
+**** WSL2
+
+- burn the firmware
+    
+: $ docker exec -it bt-kbd-remapper make -C /proj/bt-kbd-remapper all COM=/proj/dev/ttyUSB0
+
+- access the console
+
+: $ docker exec -it bt-kbd-remapper make -C /proj/bt-kbd-remapper monitor COM=/proj/dev/ttyUSB0

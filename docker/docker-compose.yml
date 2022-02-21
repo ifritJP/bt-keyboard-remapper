@@ -12,3 +12,5 @@ services:
     tty: true
     volumes:
       - "../:/proj/bt-keyboard-remapper"
+      - "/dev:/proj/dev"
+    privileged: true

@@ -36,10 +36,21 @@ $ make setup
 
 **** WSL2
 
+- hub4com
+
+  - download
+  https://sourceforge.net/projects/com0com/files/hub4com/
+  - execute com2tcp-rfc2217.bat
+
+     
 - burn the firmware
     
-: $ docker exec -it bt-kbd-remapper make -C /proj/bt-kbd-remapper all COM=/proj/dev/ttyUSB0
+: $ docker exec -it bt-kbd-remapper make -C /proj/bt-kbd-remapper all HOSTPC=WIN_PC_IP_ADDR
+
+*WIN_PC_IP_ADDR: ip address of your windows pc*
 
 - access the console
 
-: $ docker exec -it bt-kbd-remapper make -C /proj/bt-kbd-remapper monitor COM=/proj/dev/ttyUSB0
+: $ docker exec -it bt-kbd-remapper make -C /proj/bt-kbd-remapper monitor HOSTPC=WIN_PC_IP_ADDR
+
+*WIN_PC_IP_ADDR: ip address of your windows pc*

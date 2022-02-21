@@ -18,12 +18,16 @@ PROJECT_NAME=$(shell grep -e '^project' CMakeLists.txt | sed 's/.*(\(.*\))/\1/g'
 .PHONY: build
 
 help:
+	@echo make setup
 	@echo make all
 	@echo make clean
 	@echo make build
 	@echo make burn
 	@echo make monitor
 	@echo make ota
+
+setup:
+	cp -av patch/* .
 
 all:
 	idf.py flash $(IDF_OPT) monitor 

@@ -1,8 +1,8 @@
 [submodule "main/FastLED"]
-	path = main/depends/FastLED
+	path = main/FastLED
 	url = https://github.com/FastLED/FastLED.git
 [submodule "main/M5Atom"]
-	path = main/depends/M5Atom
+	path = main/M5Atom
 	url = https://github.com/m5stack/M5Atom.git
 [submodule "components/arduino"]
 	path = components/arduino

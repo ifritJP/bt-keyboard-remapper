@@ -19,6 +19,7 @@ PROJECT_NAME=$(shell grep -e '^project' CMakeLists.txt | sed 's/.*(\(.*\))/\1/g'
 
 help:
 	@echo make all
+	@echo make clean
 	@echo make build
 	@echo make burn
 	@echo make monitor
@@ -27,6 +28,8 @@ help:
 all:
 	idf.py flash $(IDF_OPT) monitor 
 
+clean:
+	idf.py clean
 
 build:
 	idf.py app

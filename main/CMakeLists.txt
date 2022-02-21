@@ -15,8 +15,8 @@ idf_component_register(
   hid_keyboard_ctrl.c
   hog_keyboard_ctrl.c
   depends/btstack/gap_inquiry.c
-  depends/btstack/console_example_main.c
-  depends/btstack/cmd_wifi.c
+  depends/esp-idf/console/console_example_main.c
+  depends/esp-idf/console/cmd_wifi.c
   #  console.c
   mutex.c
   arduinoWrap.cpp
@@ -45,6 +45,7 @@ idf_component_register(
   .
   depends
   depends/btstack
+  depends/esp-idf/console
   depends/M5Atom/src
   depends/M5Atom/src/utility
   depends/FastLED/src

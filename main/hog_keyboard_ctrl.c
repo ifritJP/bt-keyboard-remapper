@@ -42,13 +42,13 @@ void le_keyboard_setup(void){
     /* sm_init(); */
 
     //// キーボード側で特定のキーを入力する
-    //sm_set_io_capabilities(IO_CAPABILITY_DISPLAY_ONLY );
+    // sm_set_io_capabilities(IO_CAPABILITY_DISPLAY_ONLY );
     //// ホストとデバイスに番号を表示し、ペアリングするかどうかの確認画面を出す
     // SM_EVENT_NUMERIC_COMPARISON_REQUEST イベントで、
     // sm_numeric_comparison_confirm() をコールし与えられたコードを入力する。
-    //sm_set_io_capabilities(IO_CAPABILITY_DISPLAY_YES_NO);
+    /* sm_set_io_capabilities(IO_CAPABILITY_DISPLAY_YES_NO); */
     //// sm_passkey_input() を使用して、ホスト側に表示されている特定のキーを入力する
-    //sm_set_io_capabilities(IO_CAPABILITY_KEYBOARD_ONLY);
+    /* sm_set_io_capabilities(IO_CAPABILITY_KEYBOARD_ONLY); */
     // ペアリングするかどうかの確認画面をホストに出す。
     // SM_EVENT_JUST_WORKS_REQUEST イベントで、
     // sm_just_works_confirm() をコールする。
@@ -95,6 +95,19 @@ void le_keyboard_setup(void){
 
 void hog_send_report( void ) {
     hids_device_request_can_send_now_event( s_con_handle );
+}
+
+void hog_send_passkey( uint32_t passkey ) {
+    btstack_linked_list_iterator_t it;
+    hci_connections_get_iterator(&it);
+    while(btstack_linked_list_iterator_has_next(&it)){
+        hci_connection_t * connection =
+            (hci_connection_t *) btstack_linked_list_iterator_next(&it);
+        printf( "%s: %d, %d\n", __func__, connection->role, connection->state );
+
+        sm_passkey_input( connection->con_handle, passkey );
+    }
+
 }
 
 static void send_report( void ){

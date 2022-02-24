@@ -75,7 +75,7 @@ static struct {
     struct arg_lit * pPairedDevices;
     struct arg_str * pScan;
     struct arg_str * pUnpair;
-    struct arg_str * pWhiteList;
+    struct arg_str * pPasskey;
     
     
     CONSOLE_DECL_ARG_TERM;
@@ -106,7 +106,7 @@ static const console_command_arg_t s_argInfo_bt_dev[] = {
     CONSOLE_ARG_STR_OP_SET(
         "addr or 'all'", NULL, "unpair", "remove pair." ),
     CONSOLE_ARG_STR_OP_SET(
-        "'set' or 'clear'", NULL, "wlist", "white list." ),
+        "passkey'", NULL, "passkey", "send passkey for pairing." ),
 
 };
 

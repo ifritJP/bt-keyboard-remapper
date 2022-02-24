@@ -16,6 +16,8 @@
 #include "stateCtrl.h"
 #include "hid_reportDesc.h"
 
+#define TAG "HID_CTRL"
+
 static hid_protocol_mode_t s_hid_host_report_mode =
     HID_PROTOCOL_MODE_REPORT_WITH_FALLBACK_TO_BOOT;
 static bool s_hid_host_descriptor_available = false;
@@ -290,7 +292,9 @@ static void packet_handler_device(
         case HCI_EVENT_PACKET:
             switch (hci_event_packet_get_type(packet)){
                 case BTSTACK_EVENT_STATE:
-                    if (btstack_event_state_get_state(packet) != HCI_STATE_WORKING) return;
+                    if (btstack_event_state_get_state(packet) != HCI_STATE_WORKING) {
+                        return;
+                    }
                     printf( "%s: initialize HID DEVICE\n", __func__ );
                     s_hid_info_out.state = HID_STATE_NOT_CONNECTED;
                     //s_hid_info_in.state = HID_STATE_NOT_CONNECTED;
@@ -298,7 +302,8 @@ static void packet_handler_device(
 
                 case HCI_EVENT_USER_CONFIRMATION_REQUEST:
                     // ssp: inform about user confirmation request
-                    printf("SSP User Confirmation Request with numeric value '%06"PRIu32"'\n", hci_event_user_confirmation_request_get_numeric_value(packet));
+                    printf("SSP User Confirmation Request with numeric value '%06"PRIu32"'\n",
+                           hci_event_user_confirmation_request_get_numeric_value(packet));
                     printf("SSP User Confirmation Auto accept\n");                   
                     break; 
 
@@ -339,9 +344,18 @@ static void processHidMetaHost(
     
     switch ( subevent ){
     case HID_SUBEVENT_INCOMING_CONNECTION:
-        hid_host_accept_connection( cid, s_hid_host_report_mode );
+        {
+            // デバイスから接続要求が来た時。
+            bd_addr_t addr;
+            hid_subevent_incoming_connection_get_address( packet, addr );
+            ESP_LOGI( TAG, "HID_SUBEVENT_INCOMING_CONNECTION: %s",
+                      bd_addr_to_str( addr ) );
+            // 接続を許可する場合
+            hid_host_accept_connection( cid, s_hid_host_report_mode );
+            // 接続を拒否する場合
+            // hid_host_decline_connection( cid );
+        }
         break;
-                        
     case HID_SUBEVENT_CONNECTION_OPENED:
         status = hid_subevent_connection_opened_get_status(packet);
         if (status != ERROR_CODE_SUCCESS) {

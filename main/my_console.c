@@ -24,6 +24,7 @@
 #include "btstack/my_gap_inquiry.h"
 #include <my_keyboard.h>
 #include <stdlib.h>
+#include <hog_key.h>
 
 
 #define BT_INFO_VER 1
@@ -234,25 +235,43 @@ static void packet_handler(
         switch (hci_event_packet_get_type(packet)) {
         case SM_EVENT_JUST_WORKS_REQUEST:
             ESP_LOGI( TAG, "Just Works requested" );
-            if ( console_get_config_mode() == my_config_mode_setup ) {
-                sm_just_works_confirm(sm_event_just_works_request_get_handle(packet));
-            } else {
-                sm_bonding_decline( sm_event_passkey_display_number_get_handle(packet) );
+            {
+                hci_con_handle_t handle =
+                    sm_event_just_works_request_get_handle(packet);
+                if ( console_get_config_mode() == my_config_mode_setup ) {
+                    sm_just_works_confirm( handle );
+                } else {
+                    sm_bonding_decline( handle );
+                }
             }
             break;
         case SM_EVENT_NUMERIC_COMPARISON_REQUEST:
             ESP_LOGI( TAG, "Confirming numeric comparison: %u\n",
                       sm_event_numeric_comparison_request_get_passkey(packet) );
-            if ( console_get_config_mode() == my_config_mode_setup ) {
-                sm_numeric_comparison_confirm(
-                    sm_event_passkey_display_number_get_handle(packet));
-            } else {
-                sm_bonding_decline( sm_event_passkey_display_number_get_handle(packet) );
+            {
+                hci_con_handle_t handle =
+                    sm_event_numeric_comparison_request_get_handle(packet);
+                if ( console_get_config_mode() == my_config_mode_setup ) {
+                    sm_numeric_comparison_confirm( handle );
+                } else {
+                    sm_bonding_decline( handle );
+                }
             }
             break;
         case SM_EVENT_PASSKEY_DISPLAY_NUMBER:
-            ESP_LOGI( TAG, "Display Passkey: %u\n",
-                      sm_event_passkey_display_number_get_passkey(packet) );
+            {
+                uint32_t passkey = sm_event_passkey_display_number_get_passkey(packet);
+                ESP_LOGI( TAG, "Display Passkey: %u\n", passkey );
+                {
+                    hci_con_handle_t handle =
+                        sm_event_passkey_display_number_get_handle( packet );
+                    if ( console_get_config_mode() == my_config_mode_setup ) {
+                        // sm_passkey_input( handle, passkey );
+                    } else {
+                        sm_bonding_decline( handle );
+                    }
+                }
+            }
             break;
         case HCI_EVENT_LE_META:
             /* ESP_LOGI( TAG, "le_meta_subevent %X", */
@@ -735,9 +754,9 @@ static int console_bt_command(int argc, char **argv) {
         }
     }
 
-    if ( s_console_arg_bt_dev.pWhiteList->count > 0 ) {
-        const char * pTxt = s_console_arg_bt_dev.pWhiteList->sval[0];
-        sm_set_io_capabilities( strtol( pTxt, NULL, 10 ) );
+    if ( s_console_arg_bt_dev.pPasskey->count > 0 ) {
+        const char * pTxt = s_console_arg_bt_dev.pPasskey->sval[0];
+        hog_send_passkey( strtol( pTxt, NULL, 10 ) );
     }
     
 
